@@ -1,30 +1,176 @@
 ﻿// See https://aka.ms/new-console-template for more information
-Console.ForegroundColor = ConsoleColor.White;
-Console.WriteLine("Insira o número o qual receberá as chamadas:");
-Console.ForegroundColor = ConsoleColor.Yellow;
-string number = Console.ReadLine();
-Console.ForegroundColor = ConsoleColor.White;
-Console.WriteLine("Qual o intervalo (por horas) em que deseja receber atualizações?:");
-Console.ForegroundColor = ConsoleColor.Yellow;
-double hours = double.Parse(Console.ReadLine());
-
-Console.ForegroundColor = ConsoleColor.White;
-Console.WriteLine("---------------------------------------------------");
 
 
 
-    try
+
+using System;
+using System.IO.Ports;
+using Telegram.Bot;
+using Twilio;
+using Twilio.Rest.Api;
+using Twilio.Rest.Api.V2010.Account;
+using Twilio.Types;
+using Telegram.Bot.Args;
+using Telegram.Bot.Polling;
+using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types;
+using System.Text.RegularExpressions;
+
+
+
+
+// -- OBTER OUTPUT -> ARDUINO
+/*SerialPort serialPort = new SerialPort("COM4", 9600);
+double umidade = 0;
+string situação = String.Empty;
+
+try
+{
+    serialPort.Open();
+    bool haveoutput = false;
+    
+
+    while (!haveoutput)
     {
-        System.Diagnostics.Process.Start("http://api.whatsapp.com/send?phone=+" + number + "&text=" + "Teste de mensagem!");
-        Thread.Sleep(30000);
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine("Mensagem enviada com sucesso para "+number);
+         umidade = double.Parse(serialPort.ReadLine());
+
+        if (umidade >= 75)
+            situação = "DE ACORDO";
+        else if (umidade >= 45)
+            situação = "MEDIANA";
+        else
+            situação = "BAIXA";
+
+
+        if (!string.IsNullOrEmpty(Convert.ToString(umidade)))
+        {
+            haveoutput = true;
+        }
     }
-    catch (Exception ex)
+
+    if (haveoutput)
+        Console.WriteLine(umidade);
+
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Ocorreu um erro ao obter o resposta do Arduino: {ex.Message}");
+}*/
+
+
+// -- INTREGRAÇÃO AO TELEGRAM
+
+
+
+
+var botClient = new TelegramBotClient("6504753779:AAEhrCoOeb8krA5aA77tZiXa3lXS-9gGgAw");
+
+long chatId_ = 000000000;
+int delay_minutos = 0;
+bool conectado = false;
+bool startado = false;
+bool chamada = true;
+
+//CONFIGURAçÃO DE CONEXÃO
+Task PollingErrorFunction(ITelegramBotClient botClient, Exception exception, CancellationToken token)
+{
+    return Task.CompletedTask;
+}
+
+async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, CancellationToken token)
+{
+    if(update.Message is not { } message)
+        return;
+
+    if (message.Text is not { } messageText)
+        return;
+
+    chatId_ = message.Chat.Id;
+    Console.WriteLine($"Servindo a: {message.Chat.Username}");
+
+    if (messageText == "/start")
     {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine("ERROR: " + ex.Message);
+        await botClient.SendTextMessageAsync(chatId_, "Olá, seja bem vindo ao Bot Arduíno, aqui exibiremos a você \n boletins conforme queira sobre suas plantas 🤩🌱");
+    } else if (message.Text.Contains("setar-"))
+    {
+        if (conectado)
+        {
+            // POSSO INICIALIZAR O BOT AQUI
+            delay_minutos = int.Parse(Regex.Replace(message.Text, "[^0-9]", ""));
+            if (delay_minutos != 0)
+            {
+                await botClient.SendTextMessageAsync(chatId_, $"Intervalo de {delay_minutos} minuto(s) definido com sucesso!");
+                await botClient.SendTextMessageAsync(chatId_, "**BOT INICIALIZADO COM SUCESSO**"); //Caso for usar o modo de chamada, tirar esse aqui
+                startado = true;
+                //chamada = true; //PODE INICIAR AQUI
+            }
+            else
+            {
+                await botClient.SendTextMessageAsync(chatId_, "O seguinte valor não é tolerado, inválido.");
+                startado = false;
+            }
+
+        }
+        else
+        {
+            await botClient.SendTextMessageAsync(chatId_, "Verifique a conexão com a porta antes de definir um intervalo!");
+        }
+    } else if (messageText == "/inicializar")
+    {
+        if (SerialPort.GetPortNames().Contains("COM6"))
+        {
+            await botClient.SendTextMessageAsync(chatId_, "Porta COM4 conectada com sucesso!");
+            conectado = true;
+            //chamada = true; //PODE INICIAR AQUI
+        }
+        else
+        {
+            await botClient.SendTextMessageAsync(chatId_, "Nenhuma porta conectada, tente novamente!");
+            conectado = false;
+        }
+    } else if (messageText == "/encerrar")
+    {
+        conectado = false;
+        startado = false; //caso for usar o modo de chamada, tirar esse aqui e deixar somente o conectado = false
+        await botClient.SendTextMessageAsync(chatId_, "O diagnóstico foi pausado");
+        
     }
 
 
-//Console.ReadKey();
+
+
+    //SOLICITAÇÃO
+    /*if(conectado && startado && chamada)
+    {
+        await botClient.SendTextMessageAsync(chatId_, "**BOT INICIALIZADO COM SUCESSO**");
+        chamada = false;
+    }*/
+}
+
+var cancelToken = new CancellationTokenSource();
+botClient.StartReceiving(
+    updateHandler: UpdateHandlerFunction,
+    pollingErrorHandler: PollingErrorFunction,
+    receiverOptions: new ReceiverOptions
+    {
+        AllowedUpdates = Array.Empty<UpdateType>()
+    },
+    cancellationToken: cancelToken.Token
+ );
+
+var me = await botClient.GetMeAsync(cancelToken.Token);
+
+
+
+Console.WriteLine($"Escutando: {me.Username}");
+
+while (true)
+{
+
+    while(conectado && startado)
+    {
+        
+        await botClient.SendTextMessageAsync(chatId_, $"Diagonóstico");
+            Thread.Sleep(1000 * delay_minutos); // 60000 - 1 minuto
+    }
+}

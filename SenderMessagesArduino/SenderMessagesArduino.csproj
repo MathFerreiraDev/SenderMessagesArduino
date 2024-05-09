@@ -7,4 +7,13 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Selenium.WebDriver" Version="4.20.0" />
+    <PackageReference Include="System.IO.Ports" Version="8.0.0" />
+    <PackageReference Include="Telegram.Bot" Version="19.0.0" />
+    <PackageReference Include="Twilio" Version="7.0.5" />
+    <PackageReference Include="Whatsapp.NET" Version="1.2.2" />
+    <PackageReference Include="WhatsAppNETAPI" Version="3.0.0" />
+  </ItemGroup>
+
 </Project>
