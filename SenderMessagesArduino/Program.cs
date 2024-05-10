@@ -117,9 +117,9 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
         }
     } else if (messageText == "/inicializar")
     {
-        if (SerialPort.GetPortNames().Contains("COM6"))
+        if (SerialPort.GetPortNames().Contains("COM3"))
         {
-            await botClient.SendTextMessageAsync(chatId_, "Porta COM4 conectada com sucesso!");
+            await botClient.SendTextMessageAsync(chatId_, "Porta COM3 conectada com sucesso!");
             conectado = true;
             //chamada = true; //PODE INICIAR AQUI
         }
@@ -169,8 +169,37 @@ while (true)
 
     while(conectado && startado)
     {
-        
-        await botClient.SendTextMessageAsync(chatId_, $"Diagonóstico");
+        SerialPort serialPort = new SerialPort("COM3", 9600);
+        try
+        {
+            serialPort.Open();
+
+            serialPort.NewLine = "\n";
+
+            serialPort.DataReceived += (sender, e) =>
+            {
+                string receivedData = serialPort.ReadLine();
+
+                if (receivedData.StartsWith("Umidade Terra: "))
+                    Console.WriteLine("Umidade Terra: " + receivedData.Replace("Umidade Terra: ", ""));
+
+                else if (receivedData.StartsWith("Temperatura ambiente: "))
+                    Console.WriteLine("Temperatura ambiente: " + receivedData.Replace("Temperatura ambiente: ", ""));
+                
+                else if (receivedData.StartsWith("Umidade ambiente: "))
+                    Console.WriteLine("Umidade ambiente: " + receivedData.Replace("Umidade ambiente: ", ""));
+
+                else if (receivedData.StartsWith("Ponto de Orvalho: "))
+                    Console.WriteLine("Ponto de Orvalho: " + receivedData.Replace("Ponto de Orvalho: ", ""));
+            };
+
+        }
+        catch (Exception ex)
+        {
+          
+        }
+
+            await botClient.SendTextMessageAsync(chatId_, $"Diagonóstico");
             Thread.Sleep(1000 * delay_minutos); // 60000 - 1 minuto
     }
 }
