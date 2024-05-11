@@ -69,7 +69,14 @@ long chatId_ = 000000000;
 int delay_minutos = 0;
 bool conectado = false;
 bool startado = false;
-bool chamada = true;
+//bool chamada = true;
+
+//DADOS OBTIDOS
+int umidadeTerra = 0;
+string situacaoPlanta = "";
+int temperaturaAmbiente = 0;
+int umidadeAmbiente = 0;
+double pontoOrvalho = 0;
 
 //CONFIGURAçÃO DE CONEXÃO
 Task PollingErrorFunction(ITelegramBotClient botClient, Exception exception, CancellationToken token)
@@ -79,7 +86,7 @@ Task PollingErrorFunction(ITelegramBotClient botClient, Exception exception, Can
 
 async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, CancellationToken token)
 {
-    if(update.Message is not { } message)
+    if (update.Message is not { } message)
         return;
 
     if (message.Text is not { } messageText)
@@ -91,7 +98,8 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
     if (messageText == "/start")
     {
         await botClient.SendTextMessageAsync(chatId_, "Olá, seja bem vindo ao Bot Arduíno, aqui exibiremos a você \n boletins conforme queira sobre suas plantas 🤩🌱");
-    } else if (message.Text.Contains("setar-"))
+    }
+    else if (message.Text.Contains("setar-"))
     {
         if (conectado)
         {
@@ -115,11 +123,12 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
         {
             await botClient.SendTextMessageAsync(chatId_, "Verifique a conexão com a porta antes de definir um intervalo!");
         }
-    } else if (messageText == "/inicializar")
+    }
+    else if (messageText == "/inicializar")
     {
-        if (SerialPort.GetPortNames().Contains("COM3"))
+        if (SerialPort.GetPortNames().Contains("COM6"))
         {
-            await botClient.SendTextMessageAsync(chatId_, "Porta COM3 conectada com sucesso!");
+            await botClient.SendTextMessageAsync(chatId_, "Porta COM6 conectada com sucesso!");
             conectado = true;
             //chamada = true; //PODE INICIAR AQUI
         }
@@ -128,12 +137,13 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
             await botClient.SendTextMessageAsync(chatId_, "Nenhuma porta conectada, tente novamente!");
             conectado = false;
         }
-    } else if (messageText == "/encerrar")
+    }
+    else if (messageText == "/encerrar")
     {
         conectado = false;
         startado = false; //caso for usar o modo de chamada, tirar esse aqui e deixar somente o conectado = false
         await botClient.SendTextMessageAsync(chatId_, "O diagnóstico foi pausado");
-        
+
     }
 
 
@@ -167,9 +177,9 @@ Console.WriteLine($"Escutando: {me.Username}");
 while (true)
 {
 
-    while(conectado && startado)
+    while (conectado && startado)
     {
-        SerialPort serialPort = new SerialPort("COM3", 9600);
+        SerialPort serialPort = new SerialPort("COM6", 9600);
         try
         {
             serialPort.Open();
@@ -181,25 +191,46 @@ while (true)
                 string receivedData = serialPort.ReadLine();
 
                 if (receivedData.StartsWith("Umidade Terra: "))
+                {
                     Console.WriteLine("Umidade Terra: " + receivedData.Replace("Umidade Terra: ", ""));
-
+                    umidadeTerra = Convert.ToInt32(receivedData.Replace("Umidade Terra: ", ""));
+                }
+                else if (receivedData.StartsWith("Situação: "))
+                {
+                    Console.WriteLine("Situação: " + receivedData.Replace("Situação: ", ""));
+                    situacaoPlanta = receivedData.Replace("Situação: ", "");
+                }
                 else if (receivedData.StartsWith("Temperatura ambiente: "))
+                {
                     Console.WriteLine("Temperatura ambiente: " + receivedData.Replace("Temperatura ambiente: ", ""));
-                
+                    temperaturaAmbiente = Convert.ToInt32(receivedData.Replace("Temperatura ambiente: ", ""));
+                }
                 else if (receivedData.StartsWith("Umidade ambiente: "))
+                {
                     Console.WriteLine("Umidade ambiente: " + receivedData.Replace("Umidade ambiente: ", ""));
-
+                    umidadeAmbiente = Convert.ToInt32(receivedData.Replace("Umidade ambiente: ", ""));
+                }
                 else if (receivedData.StartsWith("Ponto de Orvalho: "))
+                {
                     Console.WriteLine("Ponto de Orvalho: " + receivedData.Replace("Ponto de Orvalho: ", ""));
+                    pontoOrvalho = Convert.ToInt32(receivedData.Replace("Ponto de Orvalho: ", ""));
+                }
             };
 
         }
         catch (Exception ex)
         {
-          
-        }
 
-            await botClient.SendTextMessageAsync(chatId_, $"Diagonóstico");
-            Thread.Sleep(1000 * delay_minutos); // 60000 - 1 minuto
+        }
+        Thread.Sleep(10000);
+        await botClient.SendTextMessageAsync(chatId_, $"Umidade da Terra: {umidadeTerra}% - {situacaoPlanta} \n" +
+                                                      $"Temperatura Ambiente: {temperaturaAmbiente}°C\n" +
+                                                      $"Umidade Ambiente: {umidadeAmbiente}%\n" +
+                                                      $"Ponto de Orvalho: {pontoOrvalho}°C\n" +
+                                                      $"\n O HISTÓRICO DA PLANTA SE ENCONTRA ATIVO");
+
+
+        Thread.Sleep((60000 * delay_minutos) - 10000);
+        Console.WriteLine("----------------------------");
     }
 }
