@@ -72,11 +72,11 @@ bool startado = false;
 //bool chamada = true;
 
 //DADOS OBTIDOS
-int umidadeTerra = 0;
+string umidadeTerra = "";
 string situacaoPlanta = "";
-int temperaturaAmbiente = 0;
-int umidadeAmbiente = 0;
-double pontoOrvalho = 0;
+string temperaturaAmbiente = "";
+string umidadeAmbiente = "";
+string pontoOrvalho = "";
 
 //CONFIGURAçÃO DE CONEXÃO
 Task PollingErrorFunction(ITelegramBotClient botClient, Exception exception, CancellationToken token)
@@ -108,7 +108,8 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
             if (delay_minutos != 0)
             {
                 await botClient.SendTextMessageAsync(chatId_, $"Intervalo de {delay_minutos} minuto(s) definido com sucesso!");
-                await botClient.SendTextMessageAsync(chatId_, "**BOT INICIALIZADO COM SUCESSO**"); //Caso for usar o modo de chamada, tirar esse aqui
+                await botClient.SendTextMessageAsync(chatId_, "𝗕𝗢𝗧 𝗜𝗡𝗜𝗖𝗜𝗔𝗟𝗜𝗭𝗔𝗗𝗢 𝗖𝗢𝗠 𝗦𝗨𝗖𝗘𝗦𝗦𝗢");
+                await botClient.SendTextMessageAsync(chatId_, "𝗥𝗲𝗮𝗹𝗶𝘇𝗮𝗻𝗱𝗼 𝗰𝗵𝗮𝗺𝗮𝗱𝗮 𝗱𝗲 𝗶𝗻𝗶𝗰𝗶𝗮𝗹𝗶𝘇𝗮𝗰𝗮𝗼...");//Caso for usar o modo de chamada, tirar os dois últimos aqui
                 startado = true;
                 //chamada = true; //PODE INICIAR AQUI
             }
@@ -137,6 +138,7 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
             await botClient.SendTextMessageAsync(chatId_, "Nenhuma porta conectada, tente novamente!");
             conectado = false;
         }
+        startado = false;
     }
     else if (messageText == "/encerrar")
     {
@@ -188,32 +190,28 @@ while (true)
 
             serialPort.DataReceived += (sender, e) =>
             {
+                
                 string receivedData = serialPort.ReadLine();
 
                 if (receivedData.StartsWith("Umidade Terra: "))
                 {
                     Console.WriteLine("Umidade Terra: " + receivedData.Replace("Umidade Terra: ", ""));
-                    umidadeTerra = Convert.ToInt32(receivedData.Replace("Umidade Terra: ", ""));
-                }
-                else if (receivedData.StartsWith("Situação: "))
-                {
-                    Console.WriteLine("Situação: " + receivedData.Replace("Situação: ", ""));
-                    situacaoPlanta = receivedData.Replace("Situação: ", "");
+                    umidadeTerra = receivedData.Replace("Umidade Terra: ", "");
                 }
                 else if (receivedData.StartsWith("Temperatura ambiente: "))
                 {
                     Console.WriteLine("Temperatura ambiente: " + receivedData.Replace("Temperatura ambiente: ", ""));
-                    temperaturaAmbiente = Convert.ToInt32(receivedData.Replace("Temperatura ambiente: ", ""));
+                    temperaturaAmbiente = receivedData.Replace("Temperatura ambiente: ", "");
                 }
                 else if (receivedData.StartsWith("Umidade ambiente: "))
                 {
                     Console.WriteLine("Umidade ambiente: " + receivedData.Replace("Umidade ambiente: ", ""));
-                    umidadeAmbiente = Convert.ToInt32(receivedData.Replace("Umidade ambiente: ", ""));
+                    umidadeAmbiente = receivedData.Replace("Umidade ambiente: ", "");
                 }
                 else if (receivedData.StartsWith("Ponto de Orvalho: "))
                 {
                     Console.WriteLine("Ponto de Orvalho: " + receivedData.Replace("Ponto de Orvalho: ", ""));
-                    pontoOrvalho = Convert.ToInt32(receivedData.Replace("Ponto de Orvalho: ", ""));
+                    pontoOrvalho = receivedData.Replace("Ponto de Orvalho: ", "");
                 }
             };
 
@@ -222,15 +220,26 @@ while (true)
         {
 
         }
-        Thread.Sleep(10000);
-        await botClient.SendTextMessageAsync(chatId_, $"Umidade da Terra: {umidadeTerra}% - {situacaoPlanta} \n" +
-                                                      $"Temperatura Ambiente: {temperaturaAmbiente}°C\n" +
-                                                      $"Umidade Ambiente: {umidadeAmbiente}%\n" +
-                                                      $"Ponto de Orvalho: {pontoOrvalho}°C\n" +
-                                                      $"\n O HISTÓRICO DA PLANTA SE ENCONTRA ATIVO");
 
+        Thread.Sleep(10100);
+        if (Convert.ToInt32(umidadeTerra) >= 75)
+            situacaoPlanta = "𝘼 𝙥𝙡𝙖𝙣𝙩𝙖 𝙚𝙨𝙩𝙖́ 𝙗𝙚𝙢 𝙝𝙞𝙙𝙧𝙖𝙩𝙖𝙙𝙖 🤩";
+        else if (Convert.ToInt32(umidadeTerra) >= 25)
+            situacaoPlanta = "𝘼 𝙥𝙡𝙖𝙣𝙩𝙖 𝙩𝙚𝙢 𝙪𝙢𝙞𝙙𝙖𝙙𝙚 𝙢𝙤𝙙𝙚𝙧𝙖𝙙𝙖 🌷";
+        else
+            situacaoPlanta = "𝘼 𝙥𝙡𝙖𝙣𝙩𝙖 𝙣𝙚𝙘𝙚𝙨𝙨𝙞𝙩𝙖 𝙨𝙚𝙧 𝙧𝙚𝙜𝙖𝙙𝙖 🥀";
 
-        Thread.Sleep((60000 * delay_minutos) - 10000);
+        await botClient.SendTextMessageAsync(chatId_, $"\U0001F4E2 -- 𝗕𝗢𝗟𝗘𝗧𝗜𝗠 {DateTime.Now:HH:mm}\n\n" +
+                                                      $"💧 Umidade da Terra: {umidadeTerra}%\n\n" +
+                                                      $"🔰 -- {situacaoPlanta} \n\n" +
+                                                      $"🌡 Temperatura Ambiente: {temperaturaAmbiente}°C\n" +
+                                                      $"☁ Umidade Ambiente: {umidadeAmbiente}%\n" +
+                                                      $"🍃 Ponto de Orvalho: {pontoOrvalho}°C\n\n" +
+                                                      $"\n𝗢 𝗛𝗜𝗦𝗧𝗢́𝗥𝗜𝗖𝗢 𝗗𝗔 𝗣𝗟𝗔𝗡𝗧𝗔 𝗦𝗘 𝗘𝗡𝗖𝗢𝗡𝗧𝗥𝗔 𝗔𝗧𝗜𝗩𝗢");
+
+        Thread.Sleep((60000 * delay_minutos)-10200
+            );
+
         Console.WriteLine("----------------------------");
     }
 }
