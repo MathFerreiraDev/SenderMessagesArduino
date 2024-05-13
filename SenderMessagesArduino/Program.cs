@@ -144,7 +144,7 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
     {
         conectado = false;
         startado = false; //caso for usar o modo de chamada, tirar esse aqui e deixar somente o conectado = false
-        await botClient.SendTextMessageAsync(chatId_, "O diagnóstico foi pausado");
+        await botClient.SendTextMessageAsync(chatId_, "O diagnóstico foi encerrado!");
 
     }
 
