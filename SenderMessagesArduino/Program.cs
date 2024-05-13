@@ -97,7 +97,7 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
 
     if (messageText == "/start")
     {
-        await botClient.SendTextMessageAsync(chatId_, "Olá, seja bem vindo ao Bot Arduíno, aqui exibiremos a você \n boletins conforme queira sobre suas plantas 🤩🌱");
+        await botClient.SendTextMessageAsync(chatId_, "Olá, seja bem vindo ao Bot Arduíno, aqui exibiremos a você\nboletins conforme queira sobre suas plantas 🤩🌱\n\nDigite o comando /incializar para verificar se há um Arduíno conectado a porta serial! 👀");
     }
     else if (message.Text.Contains("setar-"))
     {
