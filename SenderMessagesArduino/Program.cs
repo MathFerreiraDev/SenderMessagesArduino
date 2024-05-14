@@ -108,7 +108,7 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
             if (delay_minutos != 0)
             {
                 await botClient.SendTextMessageAsync(chatId_, $"Intervalo de {delay_minutos} minuto(s) definido com sucesso!");
-                await botClient.SendTextMessageAsync(chatId_, "𝗕𝗢𝗧 𝗜𝗡𝗜𝗖𝗜𝗔𝗟𝗜𝗭𝗔𝗗𝗢 𝗖𝗢𝗠 𝗦𝗨𝗖𝗘𝗦𝗦𝗢");
+                await botClient.SendTextMessageAsync(chatId_, "𝗕𝗢𝗧 𝗜𝗡𝗜𝗖𝗜𝗔𝗟𝗜𝗭𝗔𝗗𝗢 𝗖𝗢𝗠 𝗦𝗨𝗖𝗘𝗦𝗦𝗢\n\nDigite /encerrar caso deseje interromper os diagnósticos");
                 await botClient.SendTextMessageAsync(chatId_, "𝗥𝗲𝗮𝗹𝗶𝘇𝗮𝗻𝗱𝗼 𝗰𝗵𝗮𝗺𝗮𝗱𝗮 𝗱𝗲 𝗶𝗻𝗶𝗰𝗶𝗮𝗹𝗶𝘇𝗮𝗰𝗮𝗼...");//Caso for usar o modo de chamada, tirar os dois últimos aqui
                 startado = true;
                 //chamada = true; //PODE INICIAR AQUI
@@ -130,6 +130,7 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
         if (SerialPort.GetPortNames().Contains("COM6"))
         {
             await botClient.SendTextMessageAsync(chatId_, "Porta COM6 conectada com sucesso!");
+            await botClient.SendTextMessageAsync(chatId_, "Para definir um intervalo entre os boletins, digite setar-[número em minutos desejados], verificando se não há nenhum espaço na frase!");
             conectado = true;
             //chamada = true; //PODE INICIAR AQUI
         }
