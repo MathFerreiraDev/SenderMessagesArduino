@@ -99,7 +99,7 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
     {
         await botClient.SendTextMessageAsync(chatId_, "Olá, seja bem vindo ao Bot Arduíno, aqui exibiremos a você\nboletins conforme queira sobre suas plantas 🤩🌱\n\nDigite o comando /incializar para verificar se há um Arduíno conectado a porta serial! 👀");
     }
-    else if (message.Text.Contains("setar-"))
+    else if (message.Text.ToLower().Replace(" ", "").Contains("setar-"))
     {
         if (conectado)
         {
@@ -127,9 +127,9 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
     }
     else if (messageText == "/inicializar")
     {
-        if (SerialPort.GetPortNames().Contains("COM6"))
+        if (SerialPort.GetPortNames().Contains("COM3"))
         {
-            await botClient.SendTextMessageAsync(chatId_, "Porta COM6 conectada com sucesso!");
+            await botClient.SendTextMessageAsync(chatId_, "Porta COM3 conectada com sucesso!");
             await botClient.SendTextMessageAsync(chatId_, "Para definir um intervalo entre os boletins, digite setar-[número em minutos desejados], verificando se não há nenhum espaço na frase!");
             conectado = true;
             //chamada = true; //PODE INICIAR AQUI
@@ -182,7 +182,7 @@ while (true)
 
     while (conectado && startado)
     {
-        SerialPort serialPort = new SerialPort("COM6", 9600);
+        SerialPort serialPort = new SerialPort("COM3", 9600);
         try
         {
             serialPort.Open();
