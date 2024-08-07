@@ -148,6 +148,17 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
         await botClient.SendTextMessageAsync(chatId_, "O diagnóstico foi encerrado!");
 
     }
+    else if (messageText == "/regador")
+    { //Colocar um if para se a condição de haver água == true
+      //caso for usar o modo de chamada, tirar esse aqui e deixar somente o conectado = false
+        await botClient.SendTextMessageAsync(chatId_, "Inicializando regador por 5s.");
+
+        Thread.Sleep(5000);
+        await botClient.SendTextMessageAsync(chatId_, "-- 𝗢 𝗿𝗲𝗴𝗮𝗱𝗼𝗿 𝗳𝗼𝗶 𝗹𝗶𝗴𝗮𝗱𝗼, 𝗮𝘁𝘂𝗮𝗹𝗶𝘇𝗮𝗻𝗱𝗼 𝗼𝘀 𝘃𝗮𝗹𝗼𝗿𝗲𝘀\n" +
+                                                      "🌱 Porcentagem de umidade da terra: \n" +
+                                                      "💧 Porcentagem do regador: ");
+
+    }
 
 
 
@@ -191,7 +202,7 @@ while (true)
 
             serialPort.DataReceived += (sender, e) =>
             {
-                
+
                 string receivedData = serialPort.ReadLine();
 
                 if (receivedData.StartsWith("Umidade Terra: "))
@@ -236,9 +247,12 @@ while (true)
                                                       $"🌡 Temperatura Ambiente: {temperaturaAmbiente}°C\n" +
                                                       $"☁ Umidade Ambiente: {umidadeAmbiente}%\n" +
                                                       $"🍃 Ponto de Orvalho: {pontoOrvalho}°C\n\n" +
-                                                      $"\n𝗢 𝗛𝗜𝗦𝗧𝗢́𝗥𝗜𝗖𝗢 𝗗𝗔 𝗣𝗟𝗔𝗡𝗧𝗔 𝗦𝗘 𝗘𝗡𝗖𝗢𝗡𝗧𝗥𝗔 𝗔𝗧𝗜𝗩𝗢");
+                                                      $"\n𝗢 𝗛𝗜𝗦𝗧𝗢́𝗥𝗜𝗖𝗢 𝗗𝗔 𝗣𝗟𝗔𝗡𝗧𝗔 𝗦𝗘 𝗘𝗡𝗖𝗢𝗡𝗧𝗥𝗔 𝗔𝗧𝗜𝗩𝗢" +
+                                                      $"----------------------------------\n\n" +
+                                                      $"🚰 Porcentagem do regador: \n" +
+                                                      $"-- 𝗗𝗶𝗴𝗶𝘁𝗲 /𝗿𝗲𝗴𝗮𝗱𝗼𝗿 𝗽𝗮𝗿𝗮 𝗿𝗲𝗴𝗮𝗿 𝗮 𝗽𝗹𝗮𝗻𝘁𝗮");
 
-        Thread.Sleep((60000 * delay_minutos)-10200
+        Thread.Sleep((60000 * delay_minutos) - 10200
             );
 
         Console.WriteLine("----------------------------");
