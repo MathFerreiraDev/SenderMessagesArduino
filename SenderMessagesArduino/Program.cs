@@ -78,7 +78,6 @@ string temperaturaAmbiente = "";
 string umidadeAmbiente = "";
 string pontoOrvalho = "";
 
-SerialPort serialPort;
 
 
 //CONFIGURAçÃO DE CONEXÃO
@@ -136,10 +135,7 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
             await botClient.SendTextMessageAsync(chatId_, "Para definir um intervalo entre os boletins, digite setar-[número em minutos desejados], verificando se não há nenhum espaço na frase!");
             conectado = true;
 
-            serialPort = new SerialPort("COM3", 9600);
-            serialPort.Open();
-
-            serialPort.NewLine = "\n";
+            
             //chamada = true; //PODE INICIAR AQUI
         }
         else
@@ -161,10 +157,20 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
       //caso for usar o modo de chamada, tirar esse aqui e deixar somente o conectado = false
         await botClient.SendTextMessageAsync(chatId_, "Inicializando regador por 5s.");
 
+        SerialPort serialPort = new SerialPort("COM3", 9600);
+        serialPort.Open();
+
+        serialPort.NewLine = "\n";
+
+        serialPort.WriteLine("WATERING");
+
+        serialPort.Close();
+
         Thread.Sleep(5000);
         await botClient.SendTextMessageAsync(chatId_, "-- 𝗢 𝗿𝗲𝗴𝗮𝗱𝗼𝗿 𝗳𝗼𝗶 𝗹𝗶𝗴𝗮𝗱𝗼, 𝗮𝘁𝘂𝗮𝗹𝗶𝘇𝗮𝗻𝗱𝗼 𝗼𝘀 𝘃𝗮𝗹𝗼𝗿𝗲𝘀\n" +
                                                       "🌱 Porcentagem de umidade da terra: \n" +
                                                       "💧 Porcentagem do regador: ");
+
 
 
 
@@ -206,7 +212,10 @@ while (true)
         
         try
         {
-            
+            SerialPort serialPort = new SerialPort("COM3", 9600);
+            serialPort.Open();
+
+            serialPort.NewLine = "\n";
 
             serialPort.DataReceived += (sender, e) =>
             {
