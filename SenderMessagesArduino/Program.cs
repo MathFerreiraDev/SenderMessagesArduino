@@ -78,6 +78,9 @@ string temperaturaAmbiente = "";
 string umidadeAmbiente = "";
 string pontoOrvalho = "";
 
+SerialPort serialPort;
+
+
 //CONFIGURAçÃO DE CONEXÃO
 Task PollingErrorFunction(ITelegramBotClient botClient, Exception exception, CancellationToken token)
 {
@@ -132,6 +135,11 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
             await botClient.SendTextMessageAsync(chatId_, "Porta COM3 conectada com sucesso!");
             await botClient.SendTextMessageAsync(chatId_, "Para definir um intervalo entre os boletins, digite setar-[número em minutos desejados], verificando se não há nenhum espaço na frase!");
             conectado = true;
+
+            serialPort = new SerialPort("COM3", 9600);
+            serialPort.Open();
+
+            serialPort.NewLine = "\n";
             //chamada = true; //PODE INICIAR AQUI
         }
         else
@@ -157,6 +165,8 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
         await botClient.SendTextMessageAsync(chatId_, "-- 𝗢 𝗿𝗲𝗴𝗮𝗱𝗼𝗿 𝗳𝗼𝗶 𝗹𝗶𝗴𝗮𝗱𝗼, 𝗮𝘁𝘂𝗮𝗹𝗶𝘇𝗮𝗻𝗱𝗼 𝗼𝘀 𝘃𝗮𝗹𝗼𝗿𝗲𝘀\n" +
                                                       "🌱 Porcentagem de umidade da terra: \n" +
                                                       "💧 Porcentagem do regador: ");
+
+
 
     }
 
@@ -193,12 +203,10 @@ while (true)
 
     while (conectado && startado)
     {
-        SerialPort serialPort = new SerialPort("COM3", 9600);
+        
         try
         {
-            serialPort.Open();
-
-            serialPort.NewLine = "\n";
+            
 
             serialPort.DataReceived += (sender, e) =>
             {
