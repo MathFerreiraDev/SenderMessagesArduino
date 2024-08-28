@@ -216,6 +216,10 @@ while (true)
             serialPort.Open();
 
             serialPort.NewLine = "\n";
+ 
+            serialPort.WriteLine("DIAGNOSTIC");
+
+            Thread.Sleep(4000);
 
             serialPort.DataReceived += (sender, e) =>
             {
@@ -243,7 +247,7 @@ while (true)
                     pontoOrvalho = receivedData.Replace("Ponto de Orvalho: ", "");
                 }
             };
-
+            serialPort.Close();
         }
         catch (Exception ex)
         {
@@ -269,8 +273,12 @@ while (true)
                                                       $"🚰 Porcentagem do regador: \n" +
                                                       $"-- 𝗗𝗶𝗴𝗶𝘁𝗲 /𝗿𝗲𝗴𝗮𝗱𝗼𝗿 𝗽𝗮𝗿𝗮 𝗿𝗲𝗴𝗮𝗿 𝗮 𝗽𝗹𝗮𝗻𝘁𝗮");
 
+        
         Thread.Sleep((60000 * delay_minutos) - 10200
             );
+        
+
+        
 
         Console.WriteLine("----------------------------");
     }
