@@ -74,6 +74,7 @@ bool startado = false;
 //DADOS OBTIDOS
 string umidadeTerra = "";
 string situacaoPlanta = "";
+string situacaoRegador = "";
 string temperaturaAmbiente = "";
 string umidadeAmbiente = "";
 string pontoOrvalho = "";
@@ -304,6 +305,11 @@ while (true)
         else
             situacaoPlanta = "𝘼 𝙥𝙡𝙖𝙣𝙩𝙖 𝙣𝙚𝙘𝙚𝙨𝙨𝙞𝙩𝙖 𝙨𝙚𝙧 𝙧𝙚𝙜𝙖𝙙𝙖 🥀";
 
+        if (Convert.ToInt32(nivelAgua) >= 40)
+            situacaoRegador = "𝗗𝗶𝗴𝗶𝘁𝗲 /𝗿𝗲𝗴𝗮𝗱𝗼𝗿 𝗽𝗮𝗿𝗮 𝗿𝗲𝗴𝗮𝗿 𝗮 𝗽𝗹𝗮𝗻𝘁𝗮";
+        else
+            situacaoRegador = "O reservatório de água está escasso, por favor, recarregue!";
+
         await botClient.SendTextMessageAsync(chatId_, $"\U0001F4E2 -- 𝗕𝗢𝗟𝗘𝗧𝗜𝗠 {DateTime.Now:HH:mm} \n\n" +
                                                       $"💧 Umidade da Terra: {umidadeTerra}% \n\n" +
                                                       $"🔰 -- {situacaoPlanta} \n\n" +
@@ -313,11 +319,10 @@ while (true)
                                                       $"\n𝗛𝗜𝗦𝗧𝗢́𝗥𝗜𝗖𝗢 𝗗𝗔 𝗣𝗟𝗔𝗡𝗧𝗔 - 𝗔𝗧𝗜𝗩𝗢 \n" +
                                                       $"---------------------------------- \n\n" +
                                                       $"🚰 Porcentagem do regador: {nivelAgua}% \n" +
-                                                      $"-- 𝗗𝗶𝗴𝗶𝘁𝗲 /𝗿𝗲𝗴𝗮𝗱𝗼𝗿 𝗽𝗮𝗿𝗮 𝗿𝗲𝗴𝗮𝗿 𝗮 𝗽𝗹𝗮𝗻𝘁𝗮");
+                                                      $"-- {situacaoRegador}");
 
         
-        Thread.Sleep((60000 * delay_minutos) - 15000
-            );
+        Thread.Sleep((60000 * delay_minutos) - 15000);
         
 
         
