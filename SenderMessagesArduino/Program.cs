@@ -77,6 +77,7 @@ string situacaoPlanta = "";
 string temperaturaAmbiente = "";
 string umidadeAmbiente = "";
 string pontoOrvalho = "";
+string nivelAgua = "";
 
 
 
@@ -99,7 +100,7 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
 
     if (messageText == "/start")
     {
-        await botClient.SendTextMessageAsync(chatId_, "Olá, seja bem vindo ao Bot Arduíno, aqui exibiremos a você\nboletins conforme queira sobre suas plantas 🤩🌱\n\nDigite o comando /incializar para verificar se há um Arduíno conectado a porta serial! 👀");
+        await botClient.SendTextMessageAsync(chatId_, "Olá, seja bem vindo ao Bot Arduíno, aqui exibiremos a você\nboletins conforme queira sobre suas plantas 🤩🌱\n\nDigite o comando /inicializar para verificar se há um Arduíno conectado a porta serial! 👀");
     }
     else if (message.Text.ToLower().Replace(" ", "").Contains("setar-"))
     {
@@ -129,7 +130,7 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
     }
     else if (messageText == "/inicializar")
     {
-        if (SerialPort.GetPortNames().Contains("COM3"))
+        if (SerialPort.GetPortNames().Contains("COM7"))
         {
             await botClient.SendTextMessageAsync(chatId_, "Porta COM3 conectada com sucesso!");
             await botClient.SendTextMessageAsync(chatId_, "Para definir um intervalo entre os boletins, digite setar-[número em minutos desejados], verificando se não há nenhum espaço na frase!");
@@ -155,25 +156,58 @@ async Task UpdateHandlerFunction(ITelegramBotClient botClient, Update update, Ca
     else if (messageText == "/regador")
     { //Colocar um if para se a condição de haver água == true
       //caso for usar o modo de chamada, tirar esse aqui e deixar somente o conectado = false
-        await botClient.SendTextMessageAsync(chatId_, "Inicializando regador por 5s.");
+        if (conectado && startado)
+        {
+            await botClient.SendTextMessageAsync(chatId_, "Inicializando regador por 5s.");
 
-        SerialPort serialPort = new SerialPort("COM3", 9600);
-        serialPort.Open();
+            SerialPort serialPort = new SerialPort("COM7", 9600);
+            serialPort.Open();
 
-        serialPort.NewLine = "\n";
+            serialPort.WriteLine("WATERING");
 
-        serialPort.WriteLine("WATERING");
+            serialPort.Close();
 
-        serialPort.Close();
+            Thread.Sleep(500);
 
-        Thread.Sleep(5000);
-        await botClient.SendTextMessageAsync(chatId_, "-- 𝗢 𝗿𝗲𝗴𝗮𝗱𝗼𝗿 𝗳𝗼𝗶 𝗹𝗶𝗴𝗮𝗱𝗼, 𝗮𝘁𝘂𝗮𝗹𝗶𝘇𝗮𝗻𝗱𝗼 𝗼𝘀 𝘃𝗮𝗹𝗼𝗿𝗲𝘀\n" +
-                                                      "🌱 Porcentagem de umidade da terra: \n" +
-                                                      "💧 Porcentagem do regador: ");
+            serialPort.Open();
+            serialPort.DataReceived += (sender, e) =>
+            {
+
+                string receivedData = serialPort.ReadLine();
+
+                if (receivedData.StartsWith("Umidade Terra: "))
+                {
+                    Console.WriteLine("Umidade Terra: " + receivedData.Replace("Umidade Terra: ", ""));
+                    umidadeTerra = receivedData.Replace("Umidade Terra: ", "");
+                }
+                else if (receivedData.StartsWith("Nivel Agua: "))
+                {
+                    Console.WriteLine("Nivel Agua: " + receivedData.Replace("Nivel Agua: ", ""));
+                    nivelAgua = receivedData.Replace("Nivel Agua: ", "");
+                }
+            };
+            Thread.Sleep(7000);
+            serialPort.Close();
+
+            if (int.Parse(nivelAgua) > 10)
+            {
+                await botClient.SendTextMessageAsync(chatId_, "-- 𝗢 𝗿𝗲𝗴𝗮𝗱𝗼𝗿 𝗳𝗼𝗶 𝗹𝗶𝗴𝗮𝗱𝗼, 𝗮𝘁𝘂𝗮𝗹𝗶𝘇𝗮𝗻𝗱𝗼 𝗼𝘀 𝘃𝗮𝗹𝗼𝗿𝗲𝘀\n" +
+                                                              $"🌱 Porcentagem de umidade da terra: {umidadeTerra}% \n" +
+                                                              $"💧 Porcentagem do regador: {nivelAgua}%");
+            }
+            else
+            {
+                await botClient.SendTextMessageAsync(chatId_, "-- 𝗢 𝗿𝗲𝗴𝗮𝗱𝗼𝗿 não foi ligado, reservatório insuficiente\n" +
+                                                              $"🌱 Porcentagem de umidade da terra: {umidadeTerra}% \n" +
+                                                              $"💧 Porcentagem do regador: {nivelAgua}%");
+            }
 
 
-
-
+        }
+        else
+        {
+            await botClient.SendTextMessageAsync(chatId_, "Verifique a conexão com a porta antes de utilizar o regador!");
+        }
     }
 
 
@@ -212,14 +246,14 @@ while (true)
         
         try
         {
-            SerialPort serialPort = new SerialPort("COM3", 9600);
+            SerialPort serialPort = new SerialPort("COM7", 9600);
+           
+
+
+
             serialPort.Open();
 
-            serialPort.NewLine = "\n";
- 
-            serialPort.WriteLine("DIAGNOSTIC");
-
-            Thread.Sleep(4000);
+            
 
             serialPort.DataReceived += (sender, e) =>
             {
@@ -231,30 +265,38 @@ while (true)
                     Console.WriteLine("Umidade Terra: " + receivedData.Replace("Umidade Terra: ", ""));
                     umidadeTerra = receivedData.Replace("Umidade Terra: ", "");
                 }
-                else if (receivedData.StartsWith("Temperatura ambiente: "))
+                else if (receivedData.StartsWith("Temperatura Ambiente: "))
                 {
-                    Console.WriteLine("Temperatura ambiente: " + receivedData.Replace("Temperatura ambiente: ", ""));
-                    temperaturaAmbiente = receivedData.Replace("Temperatura ambiente: ", "");
+                    Console.WriteLine("Temperatura Ambiente: " + receivedData.Replace("Temperatura Ambiente: ", ""));
+                    temperaturaAmbiente = receivedData.Replace("Temperatura Ambiente: ", "");
                 }
-                else if (receivedData.StartsWith("Umidade ambiente: "))
+                else if (receivedData.StartsWith("Umidade Ambiente: "))
                 {
-                    Console.WriteLine("Umidade ambiente: " + receivedData.Replace("Umidade ambiente: ", ""));
-                    umidadeAmbiente = receivedData.Replace("Umidade ambiente: ", "");
+                    Console.WriteLine("Umidade Ambiente: " + receivedData.Replace("Umidade Ambiente: ", ""));
+                    umidadeAmbiente = receivedData.Replace("Umidade Ambiente: ", "");
                 }
                 else if (receivedData.StartsWith("Ponto de Orvalho: "))
                 {
                     Console.WriteLine("Ponto de Orvalho: " + receivedData.Replace("Ponto de Orvalho: ", ""));
                     pontoOrvalho = receivedData.Replace("Ponto de Orvalho: ", "");
                 }
+                else if (receivedData.StartsWith("Nivel Agua: "))
+                {
+                    Console.WriteLine("Nivel Agua: " + receivedData.Replace("Nivel Agua: ", ""));
+                    nivelAgua = receivedData.Replace("Nivel Agua: ", "");
+                }
             };
+            serialPort.WriteLine("REQUEST");
+            Thread.Sleep(5000);
             serialPort.Close();
+
         }
         catch (Exception ex)
         {
-
+            Console.WriteLine(ex.Message);
         }
 
-        Thread.Sleep(10100);
+        Thread.Sleep(10000);
         if (Convert.ToInt32(umidadeTerra) >= 75)
             situacaoPlanta = "𝘼 𝙥𝙡𝙖𝙣𝙩𝙖 𝙚𝙨𝙩𝙖́ 𝙗𝙚𝙢 𝙝𝙞𝙙𝙧𝙖𝙩𝙖𝙙𝙖 🤩";
         else if (Convert.ToInt32(umidadeTerra) >= 25)
@@ -262,19 +304,19 @@ while (true)
         else
             situacaoPlanta = "𝘼 𝙥𝙡𝙖𝙣𝙩𝙖 𝙣𝙚𝙘𝙚𝙨𝙨𝙞𝙩𝙖 𝙨𝙚𝙧 𝙧𝙚𝙜𝙖𝙙𝙖 🥀";
 
-        await botClient.SendTextMessageAsync(chatId_, $"\U0001F4E2 -- 𝗕𝗢𝗟𝗘𝗧𝗜𝗠 {DateTime.Now:HH:mm}\n\n" +
-                                                      $"💧 Umidade da Terra: {umidadeTerra}%\n\n" +
+        await botClient.SendTextMessageAsync(chatId_, $"\U0001F4E2 -- 𝗕𝗢𝗟𝗘𝗧𝗜𝗠 {DateTime.Now:HH:mm} \n\n" +
+                                                      $"💧 Umidade da Terra: {umidadeTerra}% \n\n" +
                                                       $"🔰 -- {situacaoPlanta} \n\n" +
-                                                      $"🌡 Temperatura Ambiente: {temperaturaAmbiente}°C\n" +
-                                                      $"☁ Umidade Ambiente: {umidadeAmbiente}%\n" +
-                                                      $"🍃 Ponto de Orvalho: {pontoOrvalho}°C\n\n" +
-                                                      $"\n𝗢 𝗛𝗜𝗦𝗧𝗢́𝗥𝗜𝗖𝗢 𝗗𝗔 𝗣𝗟𝗔𝗡𝗧𝗔 𝗦𝗘 𝗘𝗡𝗖𝗢𝗡𝗧𝗥𝗔 𝗔𝗧𝗜𝗩𝗢" +
-                                                      $"----------------------------------\n\n" +
-                                                      $"🚰 Porcentagem do regador: \n" +
+                                                      $"🌡 Temperatura Ambiente: {temperaturaAmbiente}°C \n" +
+                                                      $"☁ Umidade Ambiente: {umidadeAmbiente}% \n" +
+                                                      $"🍃 Ponto de Orvalho: {pontoOrvalho}°C \n\n" +
+                                                      $"\n𝗛𝗜𝗦𝗧𝗢́𝗥𝗜𝗖𝗢 𝗗𝗔 𝗣𝗟𝗔𝗡𝗧𝗔 - 𝗔𝗧𝗜𝗩𝗢 \n" +
+                                                      $"---------------------------------- \n\n" +
+                                                      $"🚰 Porcentagem do regador: {nivelAgua}% \n" +
                                                       $"-- 𝗗𝗶𝗴𝗶𝘁𝗲 /𝗿𝗲𝗴𝗮𝗱𝗼𝗿 𝗽𝗮𝗿𝗮 𝗿𝗲𝗴𝗮𝗿 𝗮 𝗽𝗹𝗮𝗻𝘁𝗮");
 
         
-        Thread.Sleep((60000 * delay_minutos) - 10200
+        Thread.Sleep((60000 * delay_minutos) - 15000
             );
         
 
