@@ -288,7 +288,7 @@ while (true)
                 }
             };
             serialPort.WriteLine("REQUEST");
-            Thread.Sleep(5000);
+            Thread.Sleep(7000);
             serialPort.Close();
 
         }
